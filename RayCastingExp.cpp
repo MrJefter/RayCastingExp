@@ -1,5 +1,7 @@
 #include <iostream>
 #include "TXLib.h"
+#include "windows.h"
+#include "thread"
 
 using namespace std;
 
@@ -51,40 +53,42 @@ int main() {
                 }
                 rayLenght = -1;
             }
-            if (255 - rayLenght*6 >= 0 && rayLenght != -1) {
-                txSetColor(RGB (255 - rayLenght*6, 255 - rayLenght*6, 255 - rayLenght*6));
-                txSetFillColor(RGB (255 - rayLenght*6, 255 - rayLenght*6, 255 - rayLenght*6));
+
+            if (rayLenght != -1) {
+                if (255 - rayLenght*6 >= 0) {
+                    txSetColor(RGB (/*255 - rayLenght*6*/ 0, 255 - rayLenght*6, /*255 - rayLenght*6*/ 0));
+                    txSetFillColor(RGB (/*255 - rayLenght*6*/ 0, 255 - rayLenght*6, /*255 - rayLenght*6*/ 0));
+                }
+                else {
+                    txSetColor(RGB (0, 0, 0));
+                    txSetFillColor(RGB (0, 0, 0));
+                }
+                txRectangle(winXCounter, ((100 - 100 / (1 + 0.08 * rayLenght)) / 2), winXCounter + 4, (100 - (100 - 100 / (1 + 0.04 * rayLenght)) / 2));
             }
-            else {
-                if (rayLenght == -1) continue;
-                txSetColor(RGB (0, 0, 0));
-                txSetFillColor(RGB (0, 0, 0));
-            }
-            txRectangle(winXCounter, ((100 - 100 / (1 + 0.02 * rayLenght)) / 2), winXCounter + 4, (100 - (100 - 100 / (1 + 0.02 * rayLenght)) / 2));
             winXCounter += 4;
         }
         txRedrawWindow();
         txSetColor(RGB (0, 0, 0));
         keyTmp = wKey;
-        if (GetAsyncKeyState(keyTmp) == -32767) {
+        if (GetKeyState(keyTmp) < -126) {
             if (txGetPixel(xPos + (xView-xPos)/10, yPos + (yView-yPos)/10) != RGB (0, 0, 0)) {
                 xPos = xPos + (xView-xPos)/20;
                 yPos = yPos + (yView-yPos)/20;
             }
         }
         keyTmp = sKey;
-        if (GetAsyncKeyState(keyTmp) == -32767) {
+        if (GetKeyState(keyTmp) < -126) {
             if (txGetPixel(xPos - (xView-xPos)/10, yPos - (yView-yPos)/10) != RGB (0, 0, 0)) {
                 xPos = xPos - (xView-xPos)/20;
                 yPos = yPos - (yView-yPos)/20;
             }
         }
         keyTmp = aKey;
-        if (GetAsyncKeyState(keyTmp) == -32767) {
+        if (GetKeyState(keyTmp) < -126) {
             angle -= 0.05;
         }
         keyTmp = dKey;
-        if (GetAsyncKeyState(keyTmp) == -32767) {
+        if (GetKeyState(keyTmp) < -126) {
             angle += 0.05;
         }
         txSetFillColor(RGB (0, 0, 0));
