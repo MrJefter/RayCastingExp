@@ -170,7 +170,7 @@ char mapArray[161][161] = {
 int main() {
     float xView, yView, xPos = 20, yPos = 20, winXCounter, rayLenght;
     float angle = 0;
-    txCreateWindow(320, 100);
+    txCreateWindow(640, 200);
     txUpdateWindow(false);
 
     char keyTmp;
@@ -181,14 +181,14 @@ int main() {
         winXCounter = 0;
         COLORREF tempColor = RGB (50, 50, 50);
         txSetColor(tempColor);
-        int bgGrad = 100;
+        int bgGrad = 200;
         while (tempColor != RGB (0, 0, 0)) {
-            txLine(0, bgGrad, 320, bgGrad);
+            txLine(0, bgGrad, 640, bgGrad);
             tempColor = RGB (GetRValue(tempColor) - 1, GetGValue(tempColor) - 1, GetBValue(tempColor) - 1);
             txSetColor(tempColor);
             bgGrad--;
         }
-        for (float xCount = angle - (3.14/180)*30; xCount < angle + (3.14/180)*30; xCount += 1.0/320.0) {
+        for (float xCount = angle - (3.14/180)*30; xCount < angle + (3.14/180)*30; xCount += 1.0/640.0) {
             float yCount;
             for (yCount = 1; yCount <= 160; yCount++) {
                 if (mapArray[(int)(xPos + cos(xCount) * yCount)][(int)(yPos + sin(xCount) * yCount)] == '#') {
@@ -207,7 +207,7 @@ int main() {
                     txSetColor(RGB (0, 0, 0));
                     txSetFillColor(RGB (0, 0, 0));
                 }
-                txLine(winXCounter, ((100 - 100 / (1 + 0.08 * rayLenght)) / 2), winXCounter, (100 - (100 - 100 / (1 + 0.04 * rayLenght)) / 2));
+                txLine(winXCounter, ((200 - 200 / (1 + 0.08 * rayLenght)) / 2), winXCounter, (200 - (200 - 200 / (1 + 0.04 * rayLenght)) / 2));
             }
             winXCounter++;
         }
