@@ -1,7 +1,6 @@
 #include <iostream>
 #include "TXLib.h"
 #include "windows.h"
-#include "thread"
 
 using namespace std;
 
@@ -172,11 +171,11 @@ int main() {
     float xView, yView, xPos = 20, yPos = 20, winXCounter, rayLenght;
     float angle = 0;
     txCreateWindow(320, 100);
+    txUpdateWindow(false);
 
     char keyTmp;
-    char wKey = 87, aKey = 65, sKey = 83, dKey = 68;
+    char wKey = 87, aKey = 65, sKey = 83, dKey = 68, qKey = 81, eKey = 69;
     while (true) {
-        txUpdateWindow(false);
         xView = xPos + cos(angle) * 50;
         yView = yPos + sin(angle) * 50;
         winXCounter = 0;
@@ -189,7 +188,7 @@ int main() {
             txSetColor(tempColor);
             bgGrad--;
         }
-        for (float xCount = angle - 0.5; xCount < angle + 0.5; xCount += 1.0/320.0) {
+        for (float xCount = angle - (3.14/180)*30; xCount < angle + (3.14/180)*30; xCount += 1.0/320.0) {
             float yCount;
             for (yCount = 1; yCount <= 160; yCount++) {
                 if (mapArray[(int)(xPos + cos(xCount) * yCount)][(int)(yPos + sin(xCount) * yCount)] == '#') {
@@ -229,9 +228,23 @@ int main() {
         }
         keyTmp = aKey;
         if (GetKeyState(keyTmp) < -126) {
-            angle -= 0.04;
+            if (mapArray[(int)(xPos - (cos(angle+(3.14/180)*90)*50)/20)][(int)(yPos - (sin(angle+(3.14/180)*90)*50)/20)] == '.') {
+                xPos = xPos + (cos(angle-(3.14/180)*90)*50)/40;
+                yPos = yPos + (sin(angle-(3.14/180)*90)*50)/40;
+            }
         }
         keyTmp = dKey;
+        if (GetKeyState(keyTmp) < -126) {
+            if (mapArray[(int)(xPos + (cos(angle+(3.14/180)*90)*50)/20)][(int)(yPos + (sin(angle+(3.14/180)*90)*50)/20)] == '.') {
+                xPos = xPos + (cos(angle+(3.14/180)*90)*50)/40;
+                yPos = yPos + (sin(angle+(3.14/180)*90)*50)/40;
+            }
+        }
+        keyTmp = qKey;
+        if (GetKeyState(keyTmp) < -126) {
+            angle -= 0.04;
+        }
+        keyTmp = eKey;
         if (GetKeyState(keyTmp) < -126) {
             angle += 0.04;
         }
