@@ -1,4 +1,3 @@
-#include <iostream>
 #include <fstream>
 #include "bitmap_image.h"
 
@@ -24,7 +23,8 @@ int main() {
         for (int countX = 0; countX < image.width(); countX++) {
             image.get_pixel(countX, countY, color);
 
-            if (color.green == 0) myfile << "\#";
+            if (color.red == 0) myfile << "#";
+            else if (color.red == 255 && color.blue == 0) myfile << "M";
             else myfile << ".";
         }
         myfile << "\"," << endl;
