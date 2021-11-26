@@ -1,4 +1,4 @@
 RayCastingExp.exe
-RayCastingExp.exe.log
-RayCastingExp.exe.log.dmp
-RayCastingExp.o
+*.exe.log
+*.exe.log.dmp
+*.o
