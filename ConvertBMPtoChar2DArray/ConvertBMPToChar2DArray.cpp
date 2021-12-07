@@ -24,7 +24,7 @@ int main() {
         for (int countX = 0; countX < image.width(); countX++) {
             image.get_pixel(countX, countY, color);
 
-            if (color.green == 0) myfile << "\#";
+            if (color.green == 0) myfile << "#";
             else myfile << ".";
         }
         myfile << "\"," << endl;
