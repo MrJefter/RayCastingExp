@@ -1,0 +1,1 @@
+g++ -o debug.exe RayCastingexp.cpp && debug.exe

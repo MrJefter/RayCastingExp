@@ -6,13 +6,18 @@
 using namespace std;
 
 double xPos = 20, yPos = 20;
-bool isSoundPlaying = false;
-double angle = 0;
+bool isWalkingSoundPlaying = false, handShaking = 0, shoot = 0;
+double angle = 0, handPos = 0;
 
 void drawAtScreen(double xView, double yView);
 void rayCast();
 void movementCheck(double xView, double yView);
+void handsDrawing();
 
+time_t timer = 6000;
+
+HDC hands = txLoadImage("hands.bmp");
+HDC cross = txLoadImage("cross.bmp");
 
 int main() {
     double xView, yView;
@@ -30,12 +35,16 @@ int main() {
 
 void rayCast() {
     double winXCounter = 0, rayLength;
-    COLORREF tempColor = RGB (50, 50, 50);
+    COLORREF tempColor = RGB (252, 221, 118);
     txSetColor(tempColor);
-    double bgGrad = 200;
-    while (tempColor != RGB (0, 0, 0)) {
+    txSetFillColor(tempColor);
+    double bgGrad = 175;
+    txRectangle(0, 176, 640, 200);
+    for (int count = 0; count < 70; count++) {
         txLine(0, bgGrad, 640, bgGrad);
-        tempColor = RGB (GetRValue(tempColor) - 1, GetGValue(tempColor) - 1, GetBValue(tempColor) - 1);
+        tempColor = RGB (GetRValue(tempColor) - (255.0-127.0)/70.0,
+                        GetGValue(tempColor) - (255.0-199.0)/70.0,
+                        GetBValue(tempColor) - (255.0-118.0)/70.0);
         txSetColor(tempColor);
         bgGrad--;
     }
@@ -51,8 +60,8 @@ void rayCast() {
 
         if (rayLength != -1) {
             if (255 - rayLength*3 >= 0) {
-                txSetColor(RGB (/*255 - rayLength*6*/ 0, 255 - rayLength*3, /*255 - rayLength*6*/ 0));
-                txSetFillColor(RGB (/*255 - rayLength*6*/ 0, 255 - rayLength*3, /*255 - rayLength*6*/ 0));
+                txSetColor(RGB (136 - rayLength*(136.0/85.0), 69 - rayLength*(69.0/85.0), 53 - rayLength*(53.0/85.0)));
+                txSetFillColor(RGB (136 - rayLength*(136.0/85.0), 69 - rayLength*(69.0/85.0), 53 - rayLength*(53.0/85.0)));
             }
             else {
                 txSetColor(RGB (0, 0, 0));
@@ -62,6 +71,8 @@ void rayCast() {
         }
         winXCounter++;
     }
+    handsDrawing();
+    txTransparentBlt(301, 90, cross, TX_WHITE);
     txRedrawWindow();
 }
 
@@ -69,15 +80,24 @@ void movementCheck(double xView, double yView) {
     double shiftSpeed;
     if (GetKeyState(16) < -126) shiftSpeed = 1.5;
     else shiftSpeed = 1;
+    if (GetKeyState(1) < -126 && GetTickCount() - timer > 1000) {
+        timer = GetTickCount();
+        handPos = 50;
+        handShaking = true;
+        txPlaySound("shoot_sound");
+        isWalkingSoundPlaying = false;
+    }
+    if (GetTickCount() - timer > 1000) {
     if ((GetKeyState(wKey) < -126 || GetKeyState(aKey) < -126 || GetKeyState(sKey) < -126 || GetKeyState(dKey) < -126)) {
-        if (!isSoundPlaying) {
+        if (!isWalkingSoundPlaying) {
             txPlaySound("running_sound");
-            isSoundPlaying = true;
+            isWalkingSoundPlaying = true;
         }
     }
     else {
         txPlaySound(0);
-        isSoundPlaying = false;
+        isWalkingSoundPlaying = false;
+    }
     }
     if (GetKeyState(wKey) < -126) {
         if (mapArray[(int)(xPos + (xView-xPos)/40)][(int)(yPos + (yView-yPos)/40)] == '.') {
@@ -109,10 +129,21 @@ void movementCheck(double xView, double yView) {
     if (GetKeyState(eKey) < -126) {
         angle += (0.04 * shiftSpeed);
     }
-    txSetFillColor(RGB (0, 0, 0));
+    txSetFillColor(RGB (127, 199, 255));
     txClear();
 }
 
 void drawAtScreen(double xView, double yView) {
     rayCast();
+}
+void handsDrawing() {
+    txTransparentBlt(460+handPos, 90+handPos/3, hands, TX_WHITE);
+    if (!handShaking) {
+        handPos++;
+        if (handPos == 25) handShaking = true;
+    }
+    else {
+        handPos--;
+        if (handPos == 0) handShaking = false;
+    }
 }
