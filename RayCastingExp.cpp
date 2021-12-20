@@ -7,13 +7,14 @@ using namespace std;
 
 double xPos = 20, yPos = 20;
 bool isWalkingSoundPlaying = false, handShaking = 0, reload = 0;
-double angle = 0;
+double angle = 0, rayLengthTmp[640], enemyRayLength[5], enemyPos[5], visibleEnemyCount = 0;
 int handPos = 0, ammo = 6;
 
 void drawAtScreen(double xView, double yView);
 void rayCast();
 void movementCheck(double xView, double yView);
 void hudDrawing();
+void enemyDrawing();
 
 time_t timer = 6000;
 time_t reloadTimer = 7000;
@@ -22,6 +23,7 @@ HDC hands = txLoadImage("hands.bmp");
 HDC hands_shoot = txLoadImage("hands_shoot.bmp");
 HDC cross = txLoadImage("cross.bmp");
 HDC bullet = txLoadImage("bullet.bmp");
+HDC enemy = txLoadImage("enemy.bmp");
 
 int main() {
     double xView, yView;
@@ -52,6 +54,7 @@ void rayCast() {
         txSetColor(tempColor);
         bgGrad--;
     }
+    int anotherCounter = 0;
     for (double xCount = angle - (3.14/180)*30; xCount < angle + (3.14/180)*30; xCount += 1.0/640.0) {
         double yCount;
         for (yCount = 1; yCount <= 160; yCount++) {
@@ -59,7 +62,15 @@ void rayCast() {
                 rayLength = sqrt(pow(cos(xCount) * yCount, 2) + pow(sin(xCount) * yCount, 2));
                 break;
             }
+            if (mapArray[(int)(xPos + cos(xCount) * yCount)][(int)(yPos + sin(xCount) * yCount)] == 'E') {
+                
+                enemyRayLength[visibleEnemyCount] = sqrt(pow(cos(xCount) * yCount, 2) + pow(sin(xCount) * yCount, 2));
+                enemyPos[visibleEnemyCount] = xCount;
+                visibleEnemyCount++;
+            }
             rayLength = -1;
+            rayLengthTmp[anotherCounter] = rayLength;
+            anotherCounter++;
         }
 
         if (rayLength != -1) {
@@ -75,8 +86,18 @@ void rayCast() {
         }
         winXCounter++;
     }
+    enemyDrawing();
     hudDrawing();
     txRedrawWindow();
+}
+
+void enemyDrawing() {
+    if (visibleEnemyCount > 0) {
+        for (visibleEnemyCount; visibleEnemyCount > 0; visibleEnemyCount++) {
+            txLine(enemyPos[visibleEnemyCount] - 73, ((200 - 200 / (1 + 0.08 * rayLength)) / 2),
+            enemyPos[visibleEnemyCount] + 74, (200 - (200 - 200 / (1 + 0.04 * rayLength)) / 2));
+        }
+    }
 }
 
 void movementCheck(double xView, double yView) {
@@ -91,7 +112,8 @@ void movementCheck(double xView, double yView) {
         isWalkingSoundPlaying = false;
         ammo--;
     }
-    else if (!reload && ammo <= 0 && GetTickCount() - timer > 1000 && GetTickCount() - reloadTimer > 6000) {
+    else if (!reload && (ammo <= 0 || (GetKeyState(82) < -126 && ammo != 6)) && GetTickCount() - timer > 1000 && GetTickCount() - reloadTimer > 6000) {
+        ammo = 0;
         txPlaySound("reload_sound");
         reload = true;
         isWalkingSoundPlaying = false;
