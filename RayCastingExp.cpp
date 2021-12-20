@@ -6,23 +6,26 @@
 using namespace std;
 
 double xPos = 20, yPos = 20;
-bool isWalkingSoundPlaying = false, handShaking = 0, shoot = 0;
-double angle = 0, handPos = 0;
+bool isWalkingSoundPlaying = false, handShaking = 0, reload = 0;
+double angle = 0;
+int handPos = 0, ammo = 6;
 
 void drawAtScreen(double xView, double yView);
 void rayCast();
 void movementCheck(double xView, double yView);
-void handsDrawing();
+void hudDrawing();
 
 time_t timer = 6000;
+time_t reloadTimer = 7000;
 
 HDC hands = txLoadImage("hands.bmp");
 HDC hands_shoot = txLoadImage("hands_shoot.bmp");
 HDC cross = txLoadImage("cross.bmp");
+HDC bullet = txLoadImage("bullet.bmp");
 
 int main() {
     double xView, yView;
-    
+
     txCreateWindow(640, 200);
     txUpdateWindow(false);
 
@@ -72,8 +75,7 @@ void rayCast() {
         }
         winXCounter++;
     }
-    handsDrawing();
-    txTransparentBlt(301, 90, cross, TX_WHITE);
+    hudDrawing();
     txRedrawWindow();
 }
 
@@ -81,15 +83,21 @@ void movementCheck(double xView, double yView) {
     double shiftSpeed;
     if (GetKeyState(16) < -126) shiftSpeed = 1.5;
     else shiftSpeed = 1;
-    if (GetKeyState(70) < -126 && GetTickCount() - timer > 1000) {
+    if (GetKeyState(70) < -126 && GetTickCount() - timer > 1000 && ammo > 0) {
         timer = GetTickCount();
         handPos = 30;
         handShaking = true;
         txPlaySound("shoot_sound");
         isWalkingSoundPlaying = false;
-        shoot = true;
+        ammo--;
     }
-    if (GetTickCount() - timer > 1000) {
+    else if (!reload && ammo <= 0 && GetTickCount() - timer > 1000 && GetTickCount() - reloadTimer > 6000) {
+        txPlaySound("reload_sound");
+        reload = true;
+        isWalkingSoundPlaying = false;
+        reloadTimer = GetTickCount();
+    }
+    if (GetTickCount() - timer > 1000 && GetTickCount() - reloadTimer > 6000) {
     if ((GetKeyState(wKey) < -126 || GetKeyState(aKey) < -126 || GetKeyState(sKey) < -126 || GetKeyState(dKey) < -126)) {
         if (!isWalkingSoundPlaying) {
             txPlaySound("running_sound");
@@ -138,12 +146,18 @@ void movementCheck(double xView, double yView) {
 void drawAtScreen(double xView, double yView) {
     rayCast();
 }
-void handsDrawing() {
-    if (shoot) {
-        txTransparentBlt(460+handPos, 90+handPos/3, hands_shoot, TX_WHITE);
-        if (GetTickCount() - timer > 200) {
-            shoot = false;
+void hudDrawing() {
+    for (int i = 0; i < ammo; i++) {
+        txTransparentBlt(-10+(i*15), 0, bullet, TX_WHITE);
+    }
+    if (reload) {
+        if (GetTickCount() - reloadTimer > 6000) {
+            reload = false;
+            ammo = 6;
         }
+    }
+    else if (GetTickCount() - timer <= 200) {
+        txTransparentBlt(460+handPos, 90+handPos/3, hands_shoot, TX_WHITE);
     }
     else txTransparentBlt(460+handPos, 90+handPos/3, hands, TX_WHITE);
     if (!handShaking) {
@@ -154,4 +168,5 @@ void handsDrawing() {
         handPos--;
         if (handPos == 0) handShaking = false;
     }
+    txTransparentBlt(301, 90, cross, TX_WHITE);
 }
