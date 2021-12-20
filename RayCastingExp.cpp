@@ -17,6 +17,7 @@ void handsDrawing();
 time_t timer = 6000;
 
 HDC hands = txLoadImage("hands.bmp");
+HDC hands_shoot = txLoadImage("hands_shoot.bmp");
 HDC cross = txLoadImage("cross.bmp");
 
 int main() {
@@ -80,12 +81,13 @@ void movementCheck(double xView, double yView) {
     double shiftSpeed;
     if (GetKeyState(16) < -126) shiftSpeed = 1.5;
     else shiftSpeed = 1;
-    if (GetKeyState(1) < -126 && GetTickCount() - timer > 1000) {
+    if (GetKeyState(70) < -126 && GetTickCount() - timer > 1000) {
         timer = GetTickCount();
-        handPos = 50;
+        handPos = 30;
         handShaking = true;
         txPlaySound("shoot_sound");
         isWalkingSoundPlaying = false;
+        shoot = true;
     }
     if (GetTickCount() - timer > 1000) {
     if ((GetKeyState(wKey) < -126 || GetKeyState(aKey) < -126 || GetKeyState(sKey) < -126 || GetKeyState(dKey) < -126)) {
@@ -137,7 +139,13 @@ void drawAtScreen(double xView, double yView) {
     rayCast();
 }
 void handsDrawing() {
-    txTransparentBlt(460+handPos, 90+handPos/3, hands, TX_WHITE);
+    if (shoot) {
+        txTransparentBlt(460+handPos, 90+handPos/3, hands_shoot, TX_WHITE);
+        if (GetTickCount() - timer > 200) {
+            shoot = false;
+        }
+    }
+    else txTransparentBlt(460+handPos, 90+handPos/3, hands, TX_WHITE);
     if (!handShaking) {
         handPos++;
         if (handPos == 25) handShaking = true;
