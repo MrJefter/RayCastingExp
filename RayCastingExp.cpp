@@ -23,11 +23,17 @@ int windowXSize = GetSystemMetrics(SM_CXSCREEN), windowYSize = GetSystemMetrics(
 //int windowXSize = 800, windowYSize = 600;
 
 HDC hands = txLoadImage("resources/textures/hands.bmp");
-HDC hands_shoot = txLoadImage("resources/textures/hands_shoot.bmp");
+HDC handsShoot = txLoadImage("resources/textures/hands_shoot.bmp");
 HDC cross = txLoadImage("resources/textures/cross.bmp");
 HDC bullet = txLoadImage("resources/textures/bullet.bmp");
 HDC handsMem = txCreateCompatibleDC(windowYSize/1.8, windowYSize/1.8);
+HDC handsShootMem = txCreateCompatibleDC(windowYSize/1.8, windowYSize/1.8);
+HDC bulletMem = txCreateCompatibleDC(windowXSize/16, windowXSize/16);
+
 int main() {
+    StretchBlt(handsMem, 0, 0, windowYSize/1.8, windowYSize/1.8, hands, 0, 0, 180, 180, SRCCOPY);
+    StretchBlt(handsShootMem, 0, 0, windowYSize/1.8, windowYSize/1.8, handsShoot, 0, 0, 180, 180, SRCCOPY);
+    StretchBlt(bulletMem, 0, 0, windowXSize/16, windowXSize/16, bullet, 0, 0, 40, 40, SRCCOPY);
     double xView, yView;
 
     _txWindowStyle &= ~WS_CAPTION;
@@ -163,7 +169,7 @@ void drawAtScreen(double xView, double yView) {
 }
 void hudDrawing() {
     for (int i = 0; i < ammo; i++) {
-        txTransparentBlt(-10+(i*15), 0, bullet, TX_WHITE);
+        txTransparentBlt(-windowXSize/64+(i*windowXSize/43), 0, bulletMem, TX_WHITE);
     }
     if (reload) {
         if (GetTickCount() - reloadTimer > 6000) {
@@ -172,11 +178,9 @@ void hudDrawing() {
         }
     }
     else if (GetTickCount() - timer <= 200) {
-        StretchBlt(handsMem, 0, 0, windowYSize/1.8, windowYSize/1.8, hands_shoot, 0, 0, 180, 180, SRCCOPY);
-        txTransparentBlt((windowXSize-windowYSize/1.8)+handPos*(windowYSize/243), (windowYSize-windowYSize/1.8)+handPos*(windowYSize/243)/3, handsMem, TX_WHITE);
+        txTransparentBlt((windowXSize-windowYSize/1.8)+handPos*(windowYSize/243), (windowYSize-windowYSize/1.8)+handPos*(windowYSize/243)/3, handsShootMem, TX_WHITE);
     }
     else {
-        StretchBlt(handsMem, 0, 0, windowYSize/1.8, windowYSize/1.8, hands, 0, 0, 180, 180, SRCCOPY);
         txTransparentBlt((windowXSize-windowYSize/1.8)+handPos*(windowYSize/243), (windowYSize-windowYSize/1.8)+handPos*(windowYSize/243)/3, handsMem, TX_WHITE);
     }
     txTransparentBlt(windowXSize/2-38, windowYSize/2-20, cross, TX_WHITE);
