@@ -7,7 +7,8 @@ using namespace std;
 
 double xPos = 20, yPos = 20;
 bool isWalkingSoundPlaying = false, handShaking = 0, reload = 0;
-double angle = 0, rayLengthTmp[640], enemyRayLength[5], enemyPos[5], visibleEnemyCount = 0;
+double angle = 0, rayLengthTmp[640], enemyRayLength[5], enemyPos[5];
+int visibleEnemyCount = 0;
 int handPos = 0, ammo = 6;
 
 void drawAtScreen(double xView, double yView);
@@ -54,7 +55,7 @@ void rayCast() {
         txSetColor(tempColor);
         bgGrad--;
     }
-    int anotherCounter = 0;
+    //int anotherCounter = 0;
     for (double xCount = angle - (3.14/180)*30; xCount < angle + (3.14/180)*30; xCount += 1.0/640.0) {
         double yCount;
         for (yCount = 1; yCount <= 160; yCount++) {
@@ -62,43 +63,42 @@ void rayCast() {
                 rayLength = sqrt(pow(cos(xCount) * yCount, 2) + pow(sin(xCount) * yCount, 2));
                 break;
             }
-            if (mapArray[(int)(xPos + cos(xCount) * yCount)][(int)(yPos + sin(xCount) * yCount)] == 'E') {
-                
+            /*if (mapArray[(int)(xPos + cos(xCount) * yCount)][(int)(yPos + sin(xCount) * yCount)] == 'E') {
                 enemyRayLength[visibleEnemyCount] = sqrt(pow(cos(xCount) * yCount, 2) + pow(sin(xCount) * yCount, 2));
                 enemyPos[visibleEnemyCount] = xCount;
                 visibleEnemyCount++;
-            }
+            }*/
             rayLength = -1;
-            rayLengthTmp[anotherCounter] = rayLength;
-            anotherCounter++;
+            //rayLengthTmp[anotherCounter] = rayLength;
+            //anotherCounter++;
         }
 
         if (rayLength != -1) {
-            if (255 - rayLength*3 >= 0) {
-                txSetColor(RGB (136 - rayLength*(136.0/85.0), 69 - rayLength*(69.0/85.0), 53 - rayLength*(53.0/85.0)));
-                txSetFillColor(RGB (136 - rayLength*(136.0/85.0), 69 - rayLength*(69.0/85.0), 53 - rayLength*(53.0/85.0)));
+            if (255 - rayLength*(255/160) >= 0) {
+                txSetColor(RGB (136 + rayLength*(136.0/160.0), 69 + rayLength*(69.0/160.0), 53 + rayLength*(53.0/160.0)));
+                txSetFillColor(RGB (136 + rayLength*(136.0/160.0), 69 + rayLength*(69.0/160.0), 53 + rayLength*(53.0/160.0)));
             }
             else {
-                txSetColor(RGB (0, 0, 0));
-                txSetFillColor(RGB (0, 0, 0));
+                txSetColor(RGB (255, 255, 255));
+                txSetFillColor(RGB (255, 255, 255));
             }
             txLine(winXCounter, ((200 - 200 / (1 + 0.08 * rayLength)) / 2), winXCounter, (200 - (200 - 200 / (1 + 0.04 * rayLength)) / 2));
         }
         winXCounter++;
     }
-    enemyDrawing();
+    //enemyDrawing();
     hudDrawing();
     txRedrawWindow();
 }
 
-void enemyDrawing() {
+/*void enemyDrawing() {
     if (visibleEnemyCount > 0) {
         for (visibleEnemyCount; visibleEnemyCount > 0; visibleEnemyCount++) {
-            txLine(enemyPos[visibleEnemyCount] - 73, ((200 - 200 / (1 + 0.08 * rayLength)) / 2),
-            enemyPos[visibleEnemyCount] + 74, (200 - (200 - 200 / (1 + 0.04 * rayLength)) / 2));
+            txRectangle(enemyPos[visibleEnemyCount] - 73, ((200 - 200 / (1 + 0.08 * rayLengthTmp[visibleEnemyCount])) / 2),
+            enemyPos[visibleEnemyCount] + 74, (200 - (200 - 200 / (1 + 0.04 * rayLengthTmp[visibleEnemyCount])) / 2));
         }
     }
-}
+}*/
 
 void movementCheck(double xView, double yView) {
     double shiftSpeed;
@@ -121,6 +121,14 @@ void movementCheck(double xView, double yView) {
     }
     if (GetTickCount() - timer > 1000 && GetTickCount() - reloadTimer > 6000) {
     if ((GetKeyState(wKey) < -126 || GetKeyState(aKey) < -126 || GetKeyState(sKey) < -126 || GetKeyState(dKey) < -126)) {
+        if (!handShaking) {
+        handPos++;
+        if (handPos == 25) handShaking = true;
+    }
+    else {
+        handPos--;
+        if (handPos == 0) handShaking = false;
+    }
         if (!isWalkingSoundPlaying) {
             txPlaySound("running_sound");
             isWalkingSoundPlaying = true;
@@ -182,13 +190,5 @@ void hudDrawing() {
         txTransparentBlt(460+handPos, 90+handPos/3, hands_shoot, TX_WHITE);
     }
     else txTransparentBlt(460+handPos, 90+handPos/3, hands, TX_WHITE);
-    if (!handShaking) {
-        handPos++;
-        if (handPos == 25) handShaking = true;
-    }
-    else {
-        handPos--;
-        if (handPos == 0) handShaking = false;
-    }
     txTransparentBlt(301, 90, cross, TX_WHITE);
 }
