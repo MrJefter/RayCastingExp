@@ -1,1 +1,1 @@
-g++ -o debug.exe RayCastingexp.cpp && debug.exe
+g++ -mwindows -lgdi32 -o debug.exe RayCastingexp.cpp && debug.exe

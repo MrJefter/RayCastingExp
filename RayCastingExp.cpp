@@ -7,7 +7,7 @@ using namespace std;
 
 double xPos = 20, yPos = 20;
 bool isWalkingSoundPlaying = false, handShaking = 0, reload = 0;
-double angle = 0, rayLengthTmp[640], enemyRayLength[5], enemyPos[5];
+double angle = 0;
 int visibleEnemyCount = 0;
 int handPos = 0, ammo = 6;
 
@@ -15,21 +15,23 @@ void drawAtScreen(double xView, double yView);
 void rayCast();
 void movementCheck(double xView, double yView);
 void hudDrawing();
-void enemyDrawing();
 
 time_t timer = 6000;
 time_t reloadTimer = 7000;
 
-HDC hands = txLoadImage("hands.bmp");
-HDC hands_shoot = txLoadImage("hands_shoot.bmp");
-HDC cross = txLoadImage("cross.bmp");
-HDC bullet = txLoadImage("bullet.bmp");
-HDC enemy = txLoadImage("enemy.bmp");
+int windowXSize = GetSystemMetrics(SM_CXSCREEN), windowYSize = GetSystemMetrics(SM_CYSCREEN);
+//int windowXSize = 800, windowYSize = 600;
 
+HDC hands = txLoadImage("resources/textures/hands.bmp");
+HDC hands_shoot = txLoadImage("resources/textures/hands_shoot.bmp");
+HDC cross = txLoadImage("resources/textures/cross.bmp");
+HDC bullet = txLoadImage("resources/textures/bullet.bmp");
+HDC handsMem = txCreateCompatibleDC(windowYSize/1.8, windowYSize/1.8);
 int main() {
     double xView, yView;
 
-    txCreateWindow(640, 200);
+    _txWindowStyle &= ~WS_CAPTION;
+    txCreateWindow(windowXSize, windowYSize);
     txUpdateWindow(false);
 
     while (true) {
@@ -45,60 +47,43 @@ void rayCast() {
     COLORREF tempColor = RGB (252, 221, 118);
     txSetColor(tempColor);
     txSetFillColor(tempColor);
-    double bgGrad = 175;
-    txRectangle(0, 176, 640, 200);
-    for (int count = 0; count < 70; count++) {
-        txLine(0, bgGrad, 640, bgGrad);
-        tempColor = RGB (GetRValue(tempColor) - (255.0-127.0)/70.0,
-                        GetGValue(tempColor) - (255.0-199.0)/70.0,
-                        GetBValue(tempColor) - (255.0-118.0)/70.0);
+    double bgGrad = windowYSize*0.9;
+    txRectangle(0, windowYSize/2, windowXSize, windowYSize);
+    for (int count = 0; count < windowYSize*0.4; count++) {
+        txLine(0, bgGrad, windowXSize, bgGrad);
+        tempColor = RGB (GetRValue(tempColor) - (255.0-127.0)/windowYSize*0.4,
+                        GetGValue(tempColor) - (255.0-199.0)/windowYSize*0.4,
+                        GetBValue(tempColor) - (255.0-118.0)/windowYSize*0.4);
         txSetColor(tempColor);
         bgGrad--;
     }
-    //int anotherCounter = 0;
-    for (double xCount = angle - (3.14/180)*30; xCount < angle + (3.14/180)*30; xCount += 1.0/640.0) {
+    int anotherCounter = 0;
+    for (double xCount = angle - (M_PI/180.0)*30.0; xCount < angle + (M_PI/180.0)*30.0; xCount += 1.0/windowXSize) {
         double yCount;
         for (yCount = 1; yCount <= 160; yCount++) {
             if (mapArray[(int)(xPos + cos(xCount) * yCount)][(int)(yPos + sin(xCount) * yCount)] == '#') {
                 rayLength = sqrt(pow(cos(xCount) * yCount, 2) + pow(sin(xCount) * yCount, 2));
                 break;
             }
-            /*if (mapArray[(int)(xPos + cos(xCount) * yCount)][(int)(yPos + sin(xCount) * yCount)] == 'E') {
-                enemyRayLength[visibleEnemyCount] = sqrt(pow(cos(xCount) * yCount, 2) + pow(sin(xCount) * yCount, 2));
-                enemyPos[visibleEnemyCount] = xCount;
-                visibleEnemyCount++;
-            }*/
             rayLength = -1;
-            //rayLengthTmp[anotherCounter] = rayLength;
-            //anotherCounter++;
         }
 
         if (rayLength != -1) {
             if (255 - rayLength*(255/160) >= 0) {
-                txSetColor(RGB (136 + rayLength*(136.0/160.0), 69 + rayLength*(69.0/160.0), 53 + rayLength*(53.0/160.0)));
-                txSetFillColor(RGB (136 + rayLength*(136.0/160.0), 69 + rayLength*(69.0/160.0), 53 + rayLength*(53.0/160.0)));
+                txSetColor(RGB (136 - rayLength*(136.0/160.0), 69 - rayLength*(69.0/160.0), 53 - rayLength*(53.0/160.0)));
+                txSetFillColor(RGB (136 - rayLength*(136.0/160.0), 69 - rayLength*(69.0/160.0), 53 - rayLength*(53.0/160.0)));
             }
             else {
-                txSetColor(RGB (255, 255, 255));
-                txSetFillColor(RGB (255, 255, 255));
+                txSetColor(RGB (0, 0, 0));
+                txSetFillColor(RGB (0, 0, 0));
             }
-            txLine(winXCounter, ((200 - 200 / (1 + 0.08 * rayLength)) / 2), winXCounter, (200 - (200 - 200 / (1 + 0.04 * rayLength)) / 2));
+            txLine(winXCounter, ((windowYSize - windowYSize / (1 + 0.08 * rayLength)) / 2), winXCounter, (windowYSize - (windowYSize - windowYSize / (1 + 0.04 * rayLength)) / 2));
         }
         winXCounter++;
     }
-    //enemyDrawing();
     hudDrawing();
     txRedrawWindow();
 }
-
-/*void enemyDrawing() {
-    if (visibleEnemyCount > 0) {
-        for (visibleEnemyCount; visibleEnemyCount > 0; visibleEnemyCount++) {
-            txRectangle(enemyPos[visibleEnemyCount] - 73, ((200 - 200 / (1 + 0.08 * rayLengthTmp[visibleEnemyCount])) / 2),
-            enemyPos[visibleEnemyCount] + 74, (200 - (200 - 200 / (1 + 0.04 * rayLengthTmp[visibleEnemyCount])) / 2));
-        }
-    }
-}*/
 
 void movementCheck(double xView, double yView) {
     double shiftSpeed;
@@ -108,13 +93,13 @@ void movementCheck(double xView, double yView) {
         timer = GetTickCount();
         handPos = 30;
         handShaking = true;
-        txPlaySound("shoot_sound");
+        txPlaySound("resources/sounds/shoot_sound.wav");
         isWalkingSoundPlaying = false;
         ammo--;
     }
     else if (!reload && (ammo <= 0 || (GetKeyState(82) < -126 && ammo != 6)) && GetTickCount() - timer > 1000 && GetTickCount() - reloadTimer > 6000) {
         ammo = 0;
-        txPlaySound("reload_sound");
+        txPlaySound("resources/sounds/reload_sound.wav");
         reload = true;
         isWalkingSoundPlaying = false;
         reloadTimer = GetTickCount();
@@ -130,7 +115,7 @@ void movementCheck(double xView, double yView) {
         if (handPos == 0) handShaking = false;
     }
         if (!isWalkingSoundPlaying) {
-            txPlaySound("running_sound");
+            txPlaySound("resources/sounds/running_sound.wav");
             isWalkingSoundPlaying = true;
         }
     }
@@ -187,8 +172,12 @@ void hudDrawing() {
         }
     }
     else if (GetTickCount() - timer <= 200) {
-        txTransparentBlt(460+handPos, 90+handPos/3, hands_shoot, TX_WHITE);
+        StretchBlt(handsMem, 0, 0, windowYSize/1.8, windowYSize/1.8, hands_shoot, 0, 0, 180, 180, SRCCOPY);
+        txTransparentBlt((windowXSize-windowYSize/1.8)+handPos*(windowYSize/243), (windowYSize-windowYSize/1.8)+handPos*(windowYSize/243)/3, handsMem, TX_WHITE);
     }
-    else txTransparentBlt(460+handPos, 90+handPos/3, hands, TX_WHITE);
-    txTransparentBlt(301, 90, cross, TX_WHITE);
-}
+    else {
+        StretchBlt(handsMem, 0, 0, windowYSize/1.8, windowYSize/1.8, hands, 0, 0, 180, 180, SRCCOPY);
+        txTransparentBlt((windowXSize-windowYSize/1.8)+handPos*(windowYSize/243), (windowYSize-windowYSize/1.8)+handPos*(windowYSize/243)/3, handsMem, TX_WHITE);
+    }
+    txTransparentBlt(windowXSize/2-38, windowYSize/2-20, cross, TX_WHITE);
+}//3,6
