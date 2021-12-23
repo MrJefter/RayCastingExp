@@ -5,7 +5,7 @@
 
 using namespace std;
 
-double xPos = 20, yPos = 20;
+double xPos = 3, yPos = 2;
 bool isWalkingSoundPlaying = false, handShaking = 0, reload = 0;
 double angle = 0;
 int visibleEnemyCount = 0;
@@ -21,6 +21,8 @@ time_t reloadTimer = 7000;
 
 int windowXSize = GetSystemMetrics(SM_CXSCREEN), windowYSize = GetSystemMetrics(SM_CYSCREEN);
 //int windowXSize = 800, windowYSize = 600;
+
+HDC scrBuffer = txCreateCompatibleDC(windowXSize - 1, windowYSize - 1);
 
 HDC hands = txLoadImage("resources/textures/hands.bmp");
 HDC handsShoot = txLoadImage("resources/textures/hands_shoot.bmp");
@@ -51,22 +53,22 @@ int main() {
 void rayCast() {
     double winXCounter = 0, rayLength;
     COLORREF tempColor = RGB (252, 221, 118);
-    txSetColor(tempColor);
-    txSetFillColor(tempColor);
+    txSetColor(tempColor, 1, scrBuffer);
+    txSetFillColor(tempColor, scrBuffer);
     double bgGrad = windowYSize*0.9;
-    txRectangle(0, windowYSize/2, windowXSize, windowYSize);
+    txRectangle(0, windowYSize/2, windowXSize, windowYSize, scrBuffer);
     for (int count = 0; count < windowYSize*0.4; count++) {
-        txLine(0, bgGrad, windowXSize, bgGrad);
+        txLine(0, bgGrad, windowXSize, bgGrad, scrBuffer);
         tempColor = RGB (GetRValue(tempColor) - (255.0-127.0)/windowYSize*0.4,
                         GetGValue(tempColor) - (255.0-199.0)/windowYSize*0.4,
                         GetBValue(tempColor) - (255.0-118.0)/windowYSize*0.4);
-        txSetColor(tempColor);
+        txSetColor(tempColor, 1, scrBuffer);
         bgGrad--;
     }
     int anotherCounter = 0;
     for (double xCount = angle - (M_PI/180.0)*30.0; xCount < angle + (M_PI/180.0)*30.0; xCount += 1.0/windowXSize) {
         double yCount;
-        for (yCount = 1; yCount <= 160; yCount++) {
+        for (yCount = 1; yCount <= 16; yCount++) {
             if (mapArray[(int)(xPos + cos(xCount) * yCount)][(int)(yPos + sin(xCount) * yCount)] == '#') {
                 rayLength = sqrt(pow(cos(xCount) * yCount, 2) + pow(sin(xCount) * yCount, 2));
                 break;
@@ -75,18 +77,19 @@ void rayCast() {
         }
 
         if (rayLength != -1) {
-            if (255 - rayLength*(255/160) >= 0) {
-                txSetColor(RGB (136 - rayLength*(136.0/160.0), 69 - rayLength*(69.0/160.0), 53 - rayLength*(53.0/160.0)));
-                txSetFillColor(RGB (136 - rayLength*(136.0/160.0), 69 - rayLength*(69.0/160.0), 53 - rayLength*(53.0/160.0)));
+            if (255 - rayLength*(255/16) >= 0) {
+                txSetColor(RGB (136 - rayLength*(136.0/16.0), 69 - rayLength*(69.0/16.0), 53 - rayLength*(53.0/16.0)), 1, scrBuffer);
+                txSetFillColor(RGB (136 - rayLength*(136.0/16.0), 69 - rayLength*(69.0/16.0), 53 - rayLength*(53.0/16.0)), scrBuffer);
             }
             else {
-                txSetColor(RGB (0, 0, 0));
-                txSetFillColor(RGB (0, 0, 0));
+                txSetColor(RGB (0, 0, 0), 1, scrBuffer);
+                txSetFillColor(RGB (0, 0, 0), scrBuffer);
             }
-            txLine(winXCounter, ((windowYSize - windowYSize / (1 + 0.08 * rayLength)) / 2), winXCounter, (windowYSize - (windowYSize - windowYSize / (1 + 0.04 * rayLength)) / 2));
+            txLine(winXCounter, windowYSize/2*(1-1/rayLength), winXCounter, windowYSize/2*(1+1/rayLength), scrBuffer);
         }
         winXCounter++;
     }
+    txBitBlt(0, 0, scrBuffer, 0, 0);
     hudDrawing();
     txRedrawWindow();
 }
@@ -160,8 +163,8 @@ void movementCheck(double xView, double yView) {
     if (GetKeyState(eKey) < -126) {
         angle += (0.04 * shiftSpeed);
     }
-    txSetFillColor(RGB (127, 199, 255));
-    txClear();
+    txSetFillColor(RGB (127, 199, 255), scrBuffer);
+    txClear(scrBuffer);
 }
 
 void drawAtScreen(double xView, double yView) {
@@ -183,5 +186,5 @@ void hudDrawing() {
     else {
         txTransparentBlt((windowXSize-windowYSize/1.8)+handPos*(windowYSize/243), (windowYSize-windowYSize/1.8)+handPos*(windowYSize/243)/3, handsMem, TX_WHITE);
     }
-    txTransparentBlt(windowXSize/2-38, windowYSize/2-20, cross, TX_WHITE);
-}//3,6
+    txTransparentBlt(windowXSize/2-38, windowYSize/2-20,cross, TX_WHITE);
+}
