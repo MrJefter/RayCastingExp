@@ -5,7 +5,7 @@
 
 using namespace std;
 
-double xPos = 3, yPos = 2;
+double xPos = 20, yPos = 20;
 bool isWalkingSoundPlaying = false, handShaking = 0, reload = 0;
 double angle = 0;
 int visibleEnemyCount = 0;
@@ -22,7 +22,8 @@ time_t reloadTimer = 7000;
 int windowXSize = GetSystemMetrics(SM_CXSCREEN), windowYSize = GetSystemMetrics(SM_CYSCREEN);
 //int windowXSize = 800, windowYSize = 600;
 
-HDC scrBuffer = txCreateCompatibleDC(windowXSize - 1, windowYSize - 1);
+HDC scrBuffer = txCreateCompatibleDC(windowXSize, windowYSize);
+HDC bgm = txCreateCompatibleDC(windowXSize, windowYSize);
 
 HDC hands = txLoadImage("resources/textures/hands.bmp");
 HDC handsShoot = txLoadImage("resources/textures/hands_shoot.bmp");
@@ -38,6 +39,29 @@ int main() {
     StretchBlt(bulletMem, 0, 0, windowXSize/16, windowXSize/16, bullet, 0, 0, 40, 40, SRCCOPY);
     double xView, yView;
 
+    txSetColor(RGB (252, 221, 118), 1, bgm);
+    txSetFillColor(RGB (252, 221, 118), bgm);
+    double bgGrad = windowYSize/2;
+    while (bgGrad <= windowYSize) {
+        txLine(0, bgGrad, windowXSize, bgGrad, bgm);
+        txSetColor(RGB (252 - (windowYSize - bgGrad)*(252.0/windowYSize*1.2),
+                        221 - (windowYSize - bgGrad)*(221.0/windowYSize*1.2),
+                        118 - (windowYSize - bgGrad)*(118.0/windowYSize*1.2)),
+                        1, bgm);
+        bgGrad++;
+    }
+    txSetColor(RGB (127, 199, 255), 1, bgm);
+    txSetFillColor(RGB (127, 199, 255), bgm);
+    bgGrad = 0;
+    while (bgGrad <= windowYSize/2 - 1) {
+        txLine(0, bgGrad, windowXSize, bgGrad, bgm);
+        txSetColor(RGB (127 - bgGrad*(127.0/windowYSize*1.2),
+                        199 - bgGrad*(199.0/windowYSize*1.2),
+                        255 - bgGrad*(255.0/windowYSize*1.2)),
+                        1, bgm);
+        bgGrad++;
+    }
+
     _txWindowStyle &= ~WS_CAPTION;
     txCreateWindow(windowXSize, windowYSize);
     txUpdateWindow(false);
@@ -52,23 +76,11 @@ int main() {
 
 void rayCast() {
     double winXCounter = 0, rayLength;
-    COLORREF tempColor = RGB (252, 221, 118);
-    txSetColor(tempColor, 1, scrBuffer);
-    txSetFillColor(tempColor, scrBuffer);
-    double bgGrad = windowYSize*0.9;
-    txRectangle(0, windowYSize/2, windowXSize, windowYSize, scrBuffer);
-    for (int count = 0; count < windowYSize*0.4; count++) {
-        txLine(0, bgGrad, windowXSize, bgGrad, scrBuffer);
-        tempColor = RGB (GetRValue(tempColor) - (255.0-127.0)/windowYSize*0.4,
-                        GetGValue(tempColor) - (255.0-199.0)/windowYSize*0.4,
-                        GetBValue(tempColor) - (255.0-118.0)/windowYSize*0.4);
-        txSetColor(tempColor, 1, scrBuffer);
-        bgGrad--;
-    }
     int anotherCounter = 0;
-    for (double xCount = angle - (M_PI/180.0)*30.0; xCount < angle + (M_PI/180.0)*30.0; xCount += 1.0/windowXSize) {
+    txBitBlt(scrBuffer, 0, 0, 0, 0, bgm, 0, 0);
+    for (double xCount = angle - M_PI/3.0; xCount < angle + M_PI/3.0; xCount += M_PI/1.5/windowXSize) {
         double yCount;
-        for (yCount = 1; yCount <= 16; yCount++) {
+        for (yCount = 1; yCount <= 160; yCount++) {
             if (mapArray[(int)(xPos + cos(xCount) * yCount)][(int)(yPos + sin(xCount) * yCount)] == '#') {
                 rayLength = sqrt(pow(cos(xCount) * yCount, 2) + pow(sin(xCount) * yCount, 2));
                 break;
@@ -77,15 +89,15 @@ void rayCast() {
         }
 
         if (rayLength != -1) {
-            if (255 - rayLength*(255/16) >= 0) {
-                txSetColor(RGB (136 - rayLength*(136.0/16.0), 69 - rayLength*(69.0/16.0), 53 - rayLength*(53.0/16.0)), 1, scrBuffer);
-                txSetFillColor(RGB (136 - rayLength*(136.0/16.0), 69 - rayLength*(69.0/16.0), 53 - rayLength*(53.0/16.0)), scrBuffer);
+            if (255 - rayLength*(255.0/160.0) >= 0) {
+                txSetColor(RGB (136 - rayLength*(136.0/160.0), 69 - rayLength*(69.0/160.0), 53 - rayLength*(53.0/160.0)), 1, scrBuffer);
+                txSetFillColor(RGB (136 - rayLength*(136.0/160.0), 69 - rayLength*(69.0/160.0), 53 - rayLength*(53.0/160.0)), scrBuffer);
             }
             else {
                 txSetColor(RGB (0, 0, 0), 1, scrBuffer);
                 txSetFillColor(RGB (0, 0, 0), scrBuffer);
             }
-            txLine(winXCounter, windowYSize/2*(1-1/rayLength), winXCounter, windowYSize/2*(1+1/rayLength), scrBuffer);
+            txLine(winXCounter, windowYSize/2*(1-7/rayLength), winXCounter, windowYSize/2*(1+7/rayLength), scrBuffer);
         }
         winXCounter++;
     }
@@ -158,12 +170,11 @@ void movementCheck(double xView, double yView) {
         }
     }
     if (GetKeyState(qKey) < -126) {
-        angle -= (0.04 * shiftSpeed);
+        angle -= (M_PI/90.0 * shiftSpeed);
     }
     if (GetKeyState(eKey) < -126) {
-        angle += (0.04 * shiftSpeed);
+        angle += (M_PI/90.0 * shiftSpeed);
     }
-    txSetFillColor(RGB (127, 199, 255), scrBuffer);
     txClear(scrBuffer);
 }
 
