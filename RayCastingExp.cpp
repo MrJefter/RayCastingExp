@@ -1,7 +1,7 @@
 #include <iostream>
-#include "TXLib.h"
+#include "lib/TXLib.h"
 #include "windows.h"
-#include "arrays.h"
+#include "lib/arrays.h"
 
 using namespace std;
 
