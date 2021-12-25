@@ -16,11 +16,14 @@ void rayCast();
 void movementCheck(double xView, double yView);
 void hudDrawing();
 
+HCURSOR hCurs3;
+HINSTANCE hinst;
+
 time_t timer = 6000;
 time_t reloadTimer = 7000;
 
-int windowXSize = GetSystemMetrics(SM_CXSCREEN), windowYSize = GetSystemMetrics(SM_CYSCREEN);
-//int windowXSize = 800, windowYSize = 600;
+//int windowXSize = GetSystemMetrics(SM_CXSCREEN), windowYSize = GetSystemMetrics(SM_CYSCREEN);
+int windowXSize = 800, windowYSize = 600;
 
 HDC scrBuffer = txCreateCompatibleDC(windowXSize, windowYSize);
 HDC bgm = txCreateCompatibleDC(windowXSize, windowYSize);
@@ -32,6 +35,8 @@ HDC bullet = txLoadImage("resources/textures/bullet.bmp");
 HDC handsMem = txCreateCompatibleDC(windowYSize/1.8, windowYSize/1.8);
 HDC handsShootMem = txCreateCompatibleDC(windowYSize/1.8, windowYSize/1.8);
 HDC bulletMem = txCreateCompatibleDC(windowXSize/16, windowXSize/16);
+
+RECT rect = {0};
 
 int main() {
     StretchBlt(handsMem, 0, 0, windowYSize/1.8, windowYSize/1.8, hands, 0, 0, 180, 180, SRCCOPY);
@@ -66,11 +71,22 @@ int main() {
     txCreateWindow(windowXSize, windowYSize);
     txUpdateWindow(false);
 
+    GetWindowRect(txWindow(), &rect);
+
+    SetForegroundWindow(txWindow());
+    SetActiveWindow(txWindow());
+    SetFocus(txWindow());
+    Sleep(300);
+    SetCursorPos(rect.right - windowXSize/2, rect.bottom - windowYSize/2);
+    hCurs3 = CreateCursor(hinst, 19, 2, 32, 32, ANDmaskCursor, XORmaskCursor);
+    SetClassLongA(txWindow(), GCL_HCURSOR, (long)hCurs3);
+
     while (true) {
         xView = xPos + cos(angle) * 50;
         yView = yPos + sin(angle) * 50;
         drawAtScreen(xView, yView);
         movementCheck(xView, yView);
+        SetCursorPos(rect.right - windowXSize/2, rect.bottom - windowYSize/2);
     }
 }
 
@@ -110,7 +126,7 @@ void movementCheck(double xView, double yView) {
     double shiftSpeed;
     if (GetKeyState(16) < -126) shiftSpeed = 1.5;
     else shiftSpeed = 1;
-    if (GetKeyState(70) < -126 && GetTickCount() - timer > 1000 && ammo > 0) {
+    if (GetKeyState(1) < -126 && GetTickCount() - timer > 1000 && ammo > 0) {
         timer = GetTickCount();
         handPos = 30;
         handShaking = true;
@@ -169,12 +185,13 @@ void movementCheck(double xView, double yView) {
             yPos = yPos + (sin(angle+(3.14/180)*90)*50)/(80 / shiftSpeed);
         }
     }
-    if (GetKeyState(qKey) < -126) {
+    /*if (GetKeyState(qKey) < -126) {
         angle -= (M_PI/90.0 * shiftSpeed);
     }
     if (GetKeyState(eKey) < -126) {
         angle += (M_PI/90.0 * shiftSpeed);
-    }
+    }*/
+    angle += (txMouseX() - windowXSize/2) * M_PI/180.0;
     txClear(scrBuffer);
 }
 
@@ -197,5 +214,5 @@ void hudDrawing() {
     else {
         txTransparentBlt((windowXSize-windowYSize/1.8)+handPos*(windowYSize/243), (windowYSize-windowYSize/1.8)+handPos*(windowYSize/243)/3, handsMem, TX_WHITE);
     }
-    txTransparentBlt(windowXSize/2-38, windowYSize/2-20,cross, TX_WHITE);
+    txTransparentBlt(windowXSize/2-19, windowYSize/2-10,cross, TX_WHITE);
 }
