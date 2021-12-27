@@ -247,4 +247,5 @@ BYTE XORmaskCursor[] =
     0, 0, 0, 0
 };
 
-CONST char wKey = 87, aKey = 65, sKey = 83, dKey = 68, qKey = 81, eKey = 69;
+CONST char wKey = 87, aKey = 65, sKey = 83, dKey = 68, enterKey = 13,
+escKey = 27, shiftKey = 16, leftMouse = 1, rKey = 82;

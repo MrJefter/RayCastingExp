@@ -1,6 +1,5 @@
 #include <iostream>
 #include "lib/TXLib.h"
-#include "windows.h"
 #include "lib/arrays.h"
 
 using namespace std;
@@ -11,7 +10,7 @@ double angle = 0;
 int visibleEnemyCount = 0;
 int handPos = 0, ammo = 6;
 
-void drawAtScreen(double xView, double yView);
+void drawAtScreen();
 void rayCast();
 void movementCheck(double xView, double yView);
 void hudDrawing();
@@ -22,8 +21,8 @@ HINSTANCE hinst;
 time_t timer = 6000;
 time_t reloadTimer = 7000;
 
-//int windowXSize = GetSystemMetrics(SM_CXSCREEN), windowYSize = GetSystemMetrics(SM_CYSCREEN);
-int windowXSize = 800, windowYSize = 600;
+int windowXSize = GetSystemMetrics(SM_CXSCREEN), windowYSize = GetSystemMetrics(SM_CYSCREEN);
+//int windowXSize = 800, windowYSize = 600;
 
 HDC scrBuffer = txCreateCompatibleDC(windowXSize, windowYSize);
 HDC bgm = txCreateCompatibleDC(windowXSize, windowYSize);
@@ -84,15 +83,27 @@ int main() {
     while (true) {
         xView = xPos + cos(angle) * 50;
         yView = yPos + sin(angle) * 50;
-        drawAtScreen(xView, yView);
+        drawAtScreen();
         movementCheck(xView, yView);
         SetCursorPos(rect.right - windowXSize/2, rect.bottom - windowYSize/2);
+        while (GetKeyState(escKey) < -126) {
+            txSetFillColor(RGB (0, 0, 0));
+            txClear();
+            txTextOut(0, 0, "Press enter to stop the program.");
+            txSetColor(RGB (255, 255, 255));
+            txUpdateWindow();
+            if (GetKeyState(enterKey) < -126) {
+                txClear();
+                txTextOut(0, 0, "Process finished. Press any key to close the window.");
+                txUpdateWindow();
+                return 0;
+            }
+        }
     }
 }
 
 void rayCast() {
     double winXCounter = 0, rayLength;
-    int anotherCounter = 0;
     txBitBlt(scrBuffer, 0, 0, 0, 0, bgm, 0, 0);
     for (double xCount = angle - M_PI/3.0; xCount < angle + M_PI/3.0; xCount += M_PI/1.5/windowXSize) {
         double yCount;
@@ -124,9 +135,9 @@ void rayCast() {
 
 void movementCheck(double xView, double yView) {
     double shiftSpeed;
-    if (GetKeyState(16) < -126) shiftSpeed = 1.5;
+    if (GetKeyState(shiftKey) < -126) shiftSpeed = 1.5;
     else shiftSpeed = 1;
-    if (GetKeyState(1) < -126 && GetTickCount() - timer > 1000 && ammo > 0) {
+    if (GetKeyState(leftMouse) < -126 && GetTickCount() - timer > 1000 && ammo > 0) {
         timer = GetTickCount();
         handPos = 30;
         handShaking = true;
@@ -134,7 +145,7 @@ void movementCheck(double xView, double yView) {
         isWalkingSoundPlaying = false;
         ammo--;
     }
-    else if (!reload && (ammo <= 0 || (GetKeyState(82) < -126 && ammo != 6)) && GetTickCount() - timer > 1000 && GetTickCount() - reloadTimer > 6000) {
+    else if (!reload && (ammo <= 0 || (GetKeyState(rKey) < -126 && ammo != 6)) && GetTickCount() - timer > 1000 && GetTickCount() - reloadTimer > 6000) {
         ammo = 0;
         txPlaySound("resources/sounds/reload_sound.wav");
         reload = true;
@@ -185,17 +196,11 @@ void movementCheck(double xView, double yView) {
             yPos = yPos + (sin(angle+(3.14/180)*90)*50)/(80 / shiftSpeed);
         }
     }
-    /*if (GetKeyState(qKey) < -126) {
-        angle -= (M_PI/90.0 * shiftSpeed);
-    }
-    if (GetKeyState(eKey) < -126) {
-        angle += (M_PI/90.0 * shiftSpeed);
-    }*/
     angle += (txMouseX() - windowXSize/2) * M_PI/180.0;
     txClear(scrBuffer);
 }
 
-void drawAtScreen(double xView, double yView) {
+void drawAtScreen() {
     rayCast();
 }
 void hudDrawing() {
