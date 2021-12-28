@@ -5,10 +5,10 @@
 using namespace std;
 
 double xPos = 20, yPos = 20;
-bool isWalkingSoundPlaying = false, handShaking = 0, reload = 0;
+bool isWalkingSoundPlaying = false, handShaking = 0, reload = 0, toggleKill = 0;
 double angle = 0;
 int visibleEnemyCount = 0;
-int handPos = 0, ammo = 6;
+int handPos = 0, ammo = 6, score = 0;
 
 void drawAtScreen();
 void rayCast();
@@ -70,6 +70,8 @@ int main() {
     txCreateWindow(windowXSize, windowYSize);
     txUpdateWindow(false);
 
+    txSelectFont("Arial Black", 60);
+
     GetWindowRect(txWindow(), &rect);
 
     SetForegroundWindow(txWindow());
@@ -107,15 +109,32 @@ void rayCast() {
     txBitBlt(scrBuffer, 0, 0, 0, 0, bgm, 0, 0);
     for (double xCount = angle - M_PI/3.0; xCount < angle + M_PI/3.0; xCount += M_PI/1.5/windowXSize) {
         double yCount;
+        char checkChar;
         for (yCount = 1; yCount <= 160; yCount++) {
-            if (mapArray[(int)(xPos + cos(xCount) * yCount)][(int)(yPos + sin(xCount) * yCount)] == '#') {
+            checkChar = mapArray[(int)(xPos + cos(xCount) * yCount)][(int)(yPos + sin(xCount) * yCount)];
+            if (checkChar == '#') {
                 rayLength = sqrt(pow(cos(xCount) * yCount, 2) + pow(sin(xCount) * yCount, 2));
+                break;
+            }
+            if (checkChar == 'E') {
+                rayLength = sqrt(pow(cos(xCount) * yCount, 2) + pow(sin(xCount) * yCount, 2));
+                txSetColor(RGB (255, 0, 0), 1, scrBuffer);
+                txSetFillColor(RGB (255, 0, 0), scrBuffer);
+                txLine(winXCounter, windowYSize/2*(1-7/rayLength), winXCounter, windowYSize/2*(1+7/rayLength), scrBuffer);
+                if (winXCounter == windowXSize/2 - 1 && GetTickCount() - timer < 200) {
+                    mapArray[(int)(xPos + cos(xCount) * yCount)][(int)(yPos + sin(xCount) * yCount)] = '.';
+                    if (!toggleKill) {
+                        toggleKill = true;
+                        score++;
+                    }
+                }
+                else toggleKill = false;
                 break;
             }
             rayLength = -1;
         }
 
-        if (rayLength != -1) {
+        if (rayLength != -1 && checkChar == '#') {
             if (255 - rayLength*(255.0/160.0) >= 0) {
                 txSetColor(RGB (136 - rayLength*(136.0/160.0), 69 - rayLength*(69.0/160.0), 53 - rayLength*(53.0/160.0)), 1, scrBuffer);
                 txSetFillColor(RGB (136 - rayLength*(136.0/160.0), 69 - rayLength*(69.0/160.0), 53 - rayLength*(53.0/160.0)), scrBuffer);
@@ -128,9 +147,6 @@ void rayCast() {
         }
         winXCounter++;
     }
-    txBitBlt(0, 0, scrBuffer, 0, 0);
-    hudDrawing();
-    txRedrawWindow();
 }
 
 void movementCheck(double xView, double yView) {
@@ -202,6 +218,12 @@ void movementCheck(double xView, double yView) {
 
 void drawAtScreen() {
     rayCast();
+    txBitBlt(0, 0, scrBuffer, 0, 0);
+    hudDrawing();
+    string tempStr = "Score: " + to_string(score);
+    const char* scoreStr = tempStr.c_str();
+    txTextOut(10, windowYSize/10, scoreStr);
+    txRedrawWindow();
 }
 void hudDrawing() {
     for (int i = 0; i < ammo; i++) {
